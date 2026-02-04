@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Villa Carpe Diem - Task Management</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #366092 0%, #2a4a73 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            padding: 20px;
+            background: #f8f9fa;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .stat-card {
+            text-align: center;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            min-width: 150px;
+        }
+
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #366092;
+        }
+
+        .stat-label {
+            color: #6c757d;
+            margin-top: 5px;
+        }
+
+        .controls {
+            padding: 20px 30px;
+            background: #f8f9fa;
+            border-bottom: 2px solid #e9ecef;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: #366092;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2a4a73;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(54, 96, 146, 0.4);
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.4);
+        }
+
+        .btn-warning {
+            background: #ffc107;
+            color: #000;
+        }
+
+        .btn-warning:hover {
+            background: #e0a800;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .filter-group label {
+            font-weight: 600;
+            color: #495057;
+        }
+
+        select {
+            padding: 8px 12px;
+            border: 2px solid #ced4da;
+            border-radius: 6px;
+            font-size: 14px;
+            background: white;
+            cursor: pointer;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: #366092;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            padding: 20px 30px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: #366092;
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+        }
+
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .status-pending {
+            background: #ffc107;
+            color: #000;
+        }
+
+        .status-progress {
+            background: #17a2b8;
+            color: white;
+        }
+
+        .status-done {
+            background: #28a745;
+            color: white;
+        }
+
+        .priority-high {
+            color: #dc3545;
+            font-weight: bold;
+        }
+
+        .priority-medium {
+            color: #ffc107;
+            font-weight: bold;
+        }
+
+        .priority-low {
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            margin-bottom: 20px;
+        }
+
+        .modal-header h2 {
+            color: #366092;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ced4da;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #366092;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 25px;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 28px;
+            cursor: pointer;
+            color: #6c757d;
+        }
+
+        .close-btn:hover {
+            color: #000;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 12px;
+            border-radius: 6px;
+            margin: 10px 0;
+        }
+
+        @media (max-width: 768px) {
+            .stats {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .filter-group {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏡 Villa Carpe Diem</h1>
+            <p>Task Management System</p>
+        </div>
+
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-number" id="pendingCount">0</div>
+                <div class="stat-label">Pending Tasks</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="progressCount">0</div>
+                <div class="stat-label">In Progress</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="doneCount">0</div>
+                <div class="stat-label">Completed</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <button class="btn btn-primary" onclick="openAddModal()">➕ Add New Task</button>
+            <button class="btn btn-success" onclick="exportToExcel()">📊 Export to Excel</button>
+            
+            <div class="filter-group">
+                <label>Filter by Person:</label>
+                <select id="filterPerson" onchange="renderTasks()">
+                    <option value="">All</option>
+                    <option value="Dragana">Dragana</option>
+                    <option value="Karolina">Karolina</option>
+                    <option value="Thomas">Thomas</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label>Filter by Status:</label>
+                <select id="filterStatus" onchange="renderTasks()">
+                    <option value="">All</option>
+                    <option value="Pending">Pending</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Done">Done</option>
+                    <option value="Done - Follow-up">Done - Follow-up</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="table-container">
+            <div id="loading" class="loading">Loading tasks...</div>
+            <div id="error" class="error" style="display: none;"></div>
+            <table id="taskTable" style="display: none;">
+                <thead>
+                    <tr>
+                        <th>Responsible</th>
+                        <th>Category</th>
+                        <th>Task Description</th>
+                        <th>Priority</th>
+                        <th>Status</th>
+                        <th>Notes</th>
+                        <th>Due Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="taskTableBody">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Add/Edit Task Modal -->
+    <div id="taskModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal()">&times;</span>
+            <div class="modal-header">
+                <h2 id="modalTitle">Add New Task</h2>
+            </div>
+            
+            <form id="taskForm" onsubmit="saveTask(event)">
+                <div class="form-group">
+                    <label>Responsible Person *</label>
+                    <select id="responsible" required>
+                        <option value="">Select person...</option>
+                        <option value="Dragana">Dragana</option>
+                        <option value="Karolina">Karolina</option>
+                        <option value="Thomas">Thomas</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Task Category *</label>
+                    <input type="text" id="category" required placeholder="e.g., Pool, Property Access">
+                </div>
+
+                <div class="form-group">
+                    <label>Task Description *</label>
+                    <textarea id="description" required placeholder="Describe the task..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Priority *</label>
+                    <select id="priority" required>
+                        <option value="">Select priority...</option>
+                        <option value="High">High</option>
+                        <option value="Medium">Medium</option>
+                        <option value="Low">Low</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Status *</label>
+                    <select id="status" required>
+                        <option value="">Select status...</option>
+                        <option value="Pending">Pending</option>
+                        <option value="In Progress">In Progress</option>
+                        <option value="Done">Done</option>
+                        <option value="Done - Follow-up">Done - Follow-up</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Notes</label>
+                    <textarea id="notes" placeholder="Additional notes..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Due Date</label>
+                    <input type="date" id="dueDate">
+                </div>
+
+                <div class="modal-buttons">
+                    <button type="button" class="btn btn-danger" onclick="closeModal()">Cancel</button>
+                    <button type="submit" class="btn btn-success">Save Task</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+        // Your Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBlYPLYfkCChYKwB6lF5D6nrn-xMjldh4",
+            authDomain: "villa-task-manager-5968a.firebaseapp.com",
+            projectId: "villa-task-manager-5968a",
+            storageBucket: "villa-task-manager-5968a.firebasestorage.app",
+            messagingSenderId: "838819768133",
+            appId: "1:838819768133:web:28f0293c2c829bfec4c02c",
+            measurementId: "G-07TLCLT59T"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Global variables
+        let tasks = [];
+        let editingTaskId = null;
+
+        // Real-time listener for tasks
+        const tasksQuery = query(collection(db, 'tasks'), orderBy('dueDate'));
+        onSnapshot(tasksQuery, (snapshot) => {
+            tasks = [];
+            snapshot.forEach((doc) => {
+                tasks.push({
+                    id: doc.id,
+                    ...doc.data()
+                });
+            });
+            
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('taskTable').style.display = 'table';
+            renderTasks();
+            updateStats();
+        }, (error) => {
+            console.error('Error loading tasks:', error);
+            document.getElementById('loading').style.display = 'none';
+            const errorDiv = document.getElementById('error');
+            errorDiv.textContent = 'Error loading tasks: ' + error.message;
+            errorDiv.style.display = 'block';
+        });
+
+        // Render tasks table
+        function renderTasks() {
+            const tbody = document.getElementById('taskTableBody');
+            const filterPerson = document.getElementById('filterPerson').value;
+            const filterStatus = document.getElementById('filterStatus').value;
+
+            const filteredTasks = tasks.filter(task => {
+                const personMatch = !filterPerson || task.responsible === filterPerson;
+                const statusMatch = !filterStatus || task.status === filterStatus;
+                return personMatch && statusMatch;
+            });
+
+            tbody.innerHTML = filteredTasks.map((task) => {
+                const statusClass = task.status.includes('Done') ? 'status-done' : 
+                                  task.status === 'In Progress' ? 'status-progress' : 'status-pending';
+                const priorityClass = task.priority === 'High' ? 'priority-high' :
+                                    task.priority === 'Medium' ? 'priority-medium' : 'priority-low';
+                
+                return `
+                    <tr>
+                        <td>${task.responsible}</td>
+                        <td>${task.category}</td>
+                        <td>${task.description}</td>
+                        <td class="${priorityClass}">${task.priority}</td>
+                        <td><span class="status-badge ${statusClass}">${task.status}</span></td>
+                        <td>${task.notes || ''}</td>
+                        <td>${task.dueDate || '-'}</td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="btn btn-warning btn-small" onclick="window.editTask('${task.id}')">Edit</button>
+                                <button class="btn btn-danger btn-small" onclick="window.deleteTask('${task.id}')">Delete</button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Update statistics
+        function updateStats() {
+            const pending = tasks.filter(t => t.status === 'Pending').length;
+            const progress = tasks.filter(t => t.status === 'In Progress').length;
+            const done = tasks.filter(t => t.status.includes('Done')).length;
+
+            document.getElementById('pendingCount').textContent = pending;
+            document.getElementById('progressCount').textContent = progress;
+            document.getElementById('doneCount').textContent = done;
+        }
+
+        // Open modal for adding task
+        window.openAddModal = function() {
+            editingTaskId = null;
+            document.getElementById('modalTitle').textContent = 'Add New Task';
+            document.getElementById('taskForm').reset();
+            document.getElementById('taskModal').classList.add('active');
+        }
+
+        // Close modal
+        window.closeModal = function() {
+            document.getElementById('taskModal').classList.remove('active');
+            editingTaskId = null;
+        }
+
+        // Edit task
+        window.editTask = function(taskId) {
+            const task = tasks.find(t => t.id === taskId);
+            if (!task) return;
+
+            editingTaskId = taskId;
+            document.getElementById('modalTitle').textContent = 'Edit Task';
+            document.getElementById('responsible').value = task.responsible;
+            document.getElementById('category').value = task.category;
+            document.getElementById('description').value = task.description;
+            document.getElementById('priority').value = task.priority;
+            document.getElementById('status').value = task.status;
+            document.getElementById('notes').value = task.notes || '';
+            document.getElementById('dueDate').value = task.dueDate || '';
+            
+            document.getElementById('taskModal').classList.add('active');
+        }
+
+        // Save task
+        window.saveTask = async function(event) {
+            event.preventDefault();
+
+            const taskData = {
+                responsible: document.getElementById('responsible').value,
+                category: document.getElementById('category').value,
+                description: document.getElementById('description').value,
+                priority: document.getElementById('priority').value,
+                status: document.getElementById('status').value,
+                notes: document.getElementById('notes').value,
+                dueDate: document.getElementById('dueDate').value
+            };
+
+            try {
+                if (editingTaskId) {
+                    // Update existing task
+                    await updateDoc(doc(db, 'tasks', editingTaskId), taskData);
+                } else {
+                    // Add new task
+                    await addDoc(collection(db, 'tasks'), taskData);
+                }
+                
+                window.closeModal();
+            } catch (error) {
+                console.error('Error saving task:', error);
+                alert('Error saving task: ' + error.message);
+            }
+        }
+
+        // Delete task
+        window.deleteTask = async function(taskId) {
+            if (!confirm('Are you sure you want to delete this task?')) return;
+
+            try {
+                await deleteDoc(doc(db, 'tasks', taskId));
+            } catch (error) {
+                console.error('Error deleting task:', error);
+                alert('Error deleting task: ' + error.message);
+            }
+        }
+
+        // Export to Excel
+        window.exportToExcel = function() {
+            let csv = 'Responsible,Category,Description,Priority,Status,Notes,Due Date\n';
+            
+            tasks.forEach(task => {
+                csv += `"${task.responsible}","${task.category}","${task.description}","${task.priority}","${task.status}","${task.notes || ''}","${task.dueDate || ''}"\n`;
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'villa_tasks_' + new Date().toISOString().split('T')[0] + '.csv';
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+
+        // Make renderTasks available globally
+        window.renderTasks = renderTasks;
+    </script>
+</body>
+</html>
